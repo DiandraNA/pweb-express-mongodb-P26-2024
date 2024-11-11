@@ -1,21 +1,30 @@
-import express from "express";
-import routes from "./routes";
-import "./db-connection";
+import express, { type Express, type Request, type Response } from "express";
+import connectDB from "./db-connection";
+import authRoutes from "./routes/auth.route";
+import bookRoutes from "./routes/book.route";
+import mechanismRoutes from "./routes/mechanism.route";
+import formatResponse from "./utils/formatResponse";
 
-const app = express();
+const app: Express = express();
+const port = process.env.PORT;
+
+// Middleware to parse JSON bodies
 app.use(express.json());
-app.use(routes);
 
-app.get("/", (_, res) => {
-  const currentTime = new Date().toLocaleString();
-  res.status(200).send({
-    status: "success",
-    message: "pong, " + currentTime,
-    data: {},
-  });
+// Connect to MongoDB
+connectDB();
+
+app.get("/", (req: Request, res: Response) => {
+  const date = new Date();
+  const response = formatResponse("success", "Hello World", date);
+  res.send(response);
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+// Routes
+app.use("/book", bookRoutes);
+app.use("/auth", authRoutes);
+app.use("/mechanism", mechanismRoutes);
+
+app.listen(port, () => {
+  return console.log(`Express is listening at http://localhost:${port}`);
 });
